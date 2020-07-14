@@ -18,12 +18,15 @@ import {
   Col,
   Accordion,
   NavLink,
+  Tabs,
+  Tab,
 } from "react-bootstrap";
+import Chat from "./Chat";
 
 export default function Orders() {
   const dispatch = useDispatch();
   const orders = useSelector(ordersSelector.selectAll);
-  console.log(orders);
+  const [key, setKey] = React.useState("info");
 
   const popover = (order) => (
     <Popover id="popover-basic">
@@ -53,11 +56,11 @@ export default function Orders() {
   const mapping = (orders = []) =>
     orders.map((order, index) => {
       return (
-        <Col className="justify-content-center d-flex ">
-          <Card style={{ width: "20rem" }} key={index}>
+        <Col className="justify-content-center d-flex " key={index.toString()}>
+          <Card style={{ width: "20rem" }}>
             <Card.Body>
               <Card.Title>name : {order.customer.username}</Card.Title>
-              <Card.Text>
+              <Card.Body>
                 <h5>status : {order.status}</h5>
 
                 <p>timePlaced : {order.timePlaced}</p>
@@ -86,7 +89,7 @@ export default function Orders() {
                 )}
                 {order.instruction && <p>instruction : {order.instruction}</p>}
                 {order.isPaid ? <p>is paid</p> : <p> is not paid</p>}
-              </Card.Text>
+              </Card.Body>
               <Dropdown>
                 <Dropdown.Toggle variant="success" id="dropdown-basic">
                   order status
@@ -112,6 +115,35 @@ export default function Orders() {
               >
                 <Button variant="outline-danger">Cancel order</Button>
               </OverlayTrigger>
+
+              {/* <OverlayTrigger
+                trigger="click"
+                placement="rop"
+                overlay={() => {
+                  return (
+                    <div style={{ width: "50px", height: "50px" }}>
+                      <Chat id={order._id} />
+                    </div>
+                  );
+                }}
+              >
+                <Button variant="success">chat</Button>
+              </OverlayTrigger> */}
+
+              <Accordion defaultActiveKey="1">
+                <Card>
+                  <Card.Header>
+                    <Accordion.Toggle as={Button} variant="link" eventKey="0">
+                      chat
+                    </Accordion.Toggle>
+                  </Card.Header>
+                  <Accordion.Collapse eventKey="0">
+                    <div style={{ height: "400px" }}>
+                      <Chat id={order._id} />
+                    </div>
+                  </Accordion.Collapse>
+                </Card>
+              </Accordion>
             </Card.Body>
           </Card>
         </Col>

@@ -5,10 +5,24 @@ import {
 } from "@reduxjs/toolkit";
 import api from "../../api/server";
 import { logout } from "../auth/authSlice";
+import { socket } from "../../api/server";
 
 const orderAdapter = createEntityAdapter({
   selectId: (order) => order._id,
 });
+
+export const sendMessageToCustomer = createAsyncThunk(
+  "orders/sendMessageToCustomer",
+  async ({ id, message }) => {
+    socket.emit("messageToCustomer", {
+      id,
+      message,
+    });
+
+    return { id, message };
+  }
+);
+
 export const asyncOrders = createAsyncThunk("orders/asyncOrders", async () => {
   const result = await api.get("/admin/orders");
   return result.data.orders;
@@ -38,7 +52,16 @@ const ordersSlice = createSlice({
   initialState: orderAdapter.getInitialState({
     loading: false,
   }),
-  reducers: {},
+  reducers: {
+    receiveMessage: (state, { payload }) => {
+      orderAdapter.updateOne(state, {
+        id: payload.id,
+        changes: {
+          chat: [payload.message, ...state.entities[payload.id].chat],
+        },
+      });
+    },
+  },
   extraReducers: {
     [logout]: (state) => {},
     [asyncOrders.fulfilled]: (state, { payload }) => {
@@ -66,9 +89,18 @@ const ordersSlice = createSlice({
         changes: { status: "in progress" },
       });
     },
+    [sendMessageToCustomer.fulfilled]: (state, { payload }) => {
+      orderAdapter.updateOne(state, {
+        id: payload.id,
+        changes: {
+          chat: [payload.message, ...state.entities[payload.id].chat],
+        },
+      });
+    },
   },
 });
 
+export const { receiveMessage } = ordersSlice.actions;
 export const ordersSelector = orderAdapter.getSelectors(
   (state) => state.orders
 );
